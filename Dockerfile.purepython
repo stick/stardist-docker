@@ -1,0 +1,26 @@
+FROM python:3.6
+
+# Create and use omero user
+RUN useradd -d /opt/omero -m -c "OMERO" -r omero
+User omero
+
+# Create Virtualenv
+WORKDIR /opt/omero
+ENV VIRTUAL_ENV=/opt/omero/virtualenv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# upgrade pip
+RUN pip install -U pip
+
+# install omero-py
+COPY omero_user_token-0.1.1-py2.py3-none-any.whl /tmp/
+RUN pip install -U /tmp/omero_user_token-0.1.1-py2.py3-none-any.whl
+
+# install segmentation utils
+#COPY segmentation_utils-0.1.1-py2.py3-none-any.whl /tmp/
+#RUN pip install -U /tmp/segmentation_utils-0.1.1-py2.py3-none-any.whl
+
+User omero
+#ADD ometiff-conversion-import.sh /usr/local/bin/
+#ENTRYPOINT ["/usr/local/bin/ometiff-conversion-import.sh"]
