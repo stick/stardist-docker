@@ -1,0 +1,48 @@
+Bootstrap: docker
+From: centos:7
+Stage: spython-base
+
+%files
+segmentation_utils-0.1.1-py2.py3-none-any.whl /opt
+
+%post
+
+yum -y update && yum clean all
+yum -y install epel-release
+
+# Install CellProfiler dependencies
+yum -y install      \
+python3           \
+curl              \
+epel-release      \
+jq                \
+which             \
+prelink           \
+unzip
+
+
+# Fix init and zombie process reaping problems using s6 overlay
+curl -L https://github.com/just-containers/s6-overlay/releases/download/v1.11.0.1/s6-overlay-amd64.tar.gz -o /tmp//s6-overlay-amd64.tar.gz
+gunzip -c /tmp/s6-overlay-amd64.tar.gz | tar -xf - -C /
+
+# Create and use omero user
+useradd -d /opt/omero -m -c "OMERO" -r omero
+
+yum -y install python3-pip
+# upgrade pip
+pip3 install -U pip wheel
+
+# zeroc-ice
+pip install -U https://github.com/ome/zeroc-ice-py-centos7/releases/download/0.2.1/zeroc_ice-3.6.5-cp36-cp36m-linux_x86_64.whl
+
+# install omero-py
+pip install -U https://github.com/glencoesoftware/omero-user-token/releases/download/v0.1.1/omero_user_token-0.1.1-py2.py3-none-any.whl
+
+# install segmentation utils
+pip install -U /opt/segmentation_utils-0.1.1-py2.py3-none-any.whl
+
+%runscript
+stardist-runner "$@"
+
+%startscript
+stardist-runner "$@"
